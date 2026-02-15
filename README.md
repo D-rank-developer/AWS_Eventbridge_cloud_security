@@ -1,6 +1,6 @@
 # AWS_Eventbridge_cloud_security
 Automated AI  security Scanner with AWS lambda, Cloud Watch and Eventbridge
-~Introducing the Project!
+#Introducing the Project!
 I’m building an AI-powered security scanner using AWS Lambda that checks
 whether S3 buckets are properly encrypted, sends the findings to Gemini AI for
 analysis, and generates intelligent security insights. The system runs
