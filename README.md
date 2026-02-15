@@ -1,4 +1,4 @@
-# AWS_Eventbridge_cloud_security
+# AI Security Scanner for AWS S3
 Automated AI  security Scanner with AWS lambda, Cloud Watch and Eventbridge
 # Introducing the Project!
 I’m building an AI-powered security scanner using AWS Lambda that checks
