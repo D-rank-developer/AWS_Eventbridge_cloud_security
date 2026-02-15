@@ -171,11 +171,141 @@ I configured Amazon EventBridge by navigating to Rules, using the scheduled rule
 ![Image](http://learn.nextwork.org/sparkling_blue_joyful_nopal/uploads/ai-aws-s3-security_awssec2b3c)
 
 ### Production Workflow and Monitoring
+# Wrap‑Up: Deploying and Monitoring the S3 Encryption Scanner
+
+This final part of the documentation covers how to verify the automated schedule, monitor the Lambda function’s execution through CloudWatch Logs, and an alternative method for packaging dependencies using Docker. After these steps, your AI‑powered security scanner will be running fully automatically.
+
+---
+
+## Step 9: Verify the EventBridge Schedule
+
+![Image 24](image/image24.png)
+
+Once the EventBridge schedule is created, you can review its details in the console:
+
+1. In the AWS Console, navigate to **Amazon EventBridge** → **Scheduler** → **Schedules**.
+2. Locate the schedule named `daily-s3-security-scan`.
+3. The overview confirms:
+   - **Status**: Enabled
+   - **Type**: Scheduled Standard
+   - **Schedule expression**: `rate(12 hours)`
+   - **Target**: The Lambda function `s3-security-scanner`
+   - **Permissions**: An execution role has been automatically created to allow EventBridge to invoke the function.
+
+You can also see the rule’s ARN, event bus, and any attached tags. This page confirms that your automation is active and will trigger the scanner twice daily.
+
+---
+
+## Step 10: Monitor Execution in CloudWatch Logs
+
+![Image 25](image/image25.png)  
+![Image 26](/image/image26.png)
+
+Every time the Lambda function runs (whether manually or via the schedule), it logs details to Amazon CloudWatch Logs. You can monitor these logs to verify correct operation and to review the AI‑generated risk explanations.
+
+1. In the Lambda console, open your function (`s3-security-scanner`).
+2. Go to the **Monitor** tab and click **View CloudWatch Logs**.
+   - Alternatively, navigate directly to **CloudWatch** → **Log groups** and select the log group named `/aws/lambda/s3-security-scanner`.
+3. You will see a list of **log streams**, each corresponding to a separate invocation. The streams are named with the date and a unique identifier (e.g., `2026/02/14/[$LATEST]c4919...`).
+4. Click on a log stream to view the individual log events.
+
+**What to look for in the logs:**
+
+- **Start and End messages** – confirm the invocation ran completely.
+- **Any error messages** – if the Gemini API key is missing or the model name is incorrect, you’ll see exceptions here.
+- **The scan results** – the function prints the list of buckets and their encryption status, plus the AI‑generated risk analysis for unencrypted buckets.
+
+Image 26 shows a sample log event with the Gemini deprecation notice, the import statement, and the start/end of the request. This helps you debug and verify that the AI integration is working.
+
+---
+
+## Step 11: (Optional) Building the Deployment Package with Docker
+
+![Image 27](image/image27.png)  
+![Image 28](image/image28.png)
+
+If you need to recreate the deployment package (for example, to update dependencies or change the Python version), using a Docker container that mimics the Lambda execution environment is the recommended approach. The images show a local development session where the user pulled the AWS Lambda Python image and installed requirements.
+
+### 11.1 Pull the Lambda Python Image
+
+```bash
+docker pull public.ecr.aws/lambda/python:3.14
+```
+
+### 11.2 Install Dependencies into a Local Folder
+
+Run a container that mounts your current directory and installs the packages from `requirements.txt` into that folder:
+
+```bash
+docker run --rm -v %cd%:/var/task public.ecr.aws/lambda/python:3.14 pip install -r requirements.txt -t .
+```
+
+On Linux/macOS, replace `%cd%` with `$(pwd)`.
+
+This command installs all necessary libraries (boto3, google‑generativeai, etc.) directly into the current directory, ready to be packaged with your Lambda code.
+
+### 11.3 Create the ZIP Archive
+
+After the dependencies are installed, you can compress everything:
+
+```bash
+zip -r function.zip .
+```
+
+Or, if you prefer PowerShell (as seen in the image):
+
+```powershell
+Compress-Archive -Path * -DestinationPath function.zip
+```
+
+The resulting `function.zip` can then be uploaded to Lambda.
+
+> **Note:** The images show a warning about running pip as root – this is expected inside a container and can be ignored. Also, a newer pip version is available, but it’s not required for the package to work.
+
+---
+
+## Conclusion
+
+You have now built and deployed a fully automated security monitoring solution for Amazon S3. The system:
+
+- Scans all S3 buckets in your account **every 12 hours** using an EventBridge schedule.
+- Checks whether **server‑side encryption** is enabled on each bucket.
+- For any unencrypted bucket, invokes **Google’s Gemini AI** to generate a clear, human‑readable explanation of the security risk.
+- Logs all results to **CloudWatch Logs** for auditing and further analysis.
+
+This project demonstrates how to combine AWS serverless services (Lambda, EventBridge, IAM, CloudWatch) with external AI APIs to create a practical, low‑maintenance security tool. By automating the scan, you ensure continuous compliance without manual effort, and the AI‑generated insights make it easy to communicate risks to stakeholders.
+
+### Potential Enhancements
+
+- **Add alerts** – Use CloudWatch Alarms or Amazon SNS to notify a security team when an unencrypted bucket is found.
+- **Expand the scan** – Include other security checks, such as bucket public access blocks or versioning status.
+- **Store results** – Write the findings to a DynamoDB table or an S3 bucket for long‑term trend analysis.
+- **Improve AI prompts** – Customize the Gemini prompt to include compliance frameworks (e.g., HIPAA, PCI‑DSS) or to suggest remediation steps.
+
+With this foundation, you can easily extend the scanner to meet your organization’s evolving security needs.
 
 ---
 
 ## Wrap-up
 
 ---
+## Conclusion
 
+You have now built and deployed a fully automated security monitoring solution for Amazon S3. The system:
+
+- Scans all S3 buckets in your account **every 12 hours** using an EventBridge schedule.
+- Checks whether **server‑side encryption** is enabled on each bucket.
+- For any unencrypted bucket, invokes **Google’s Gemini AI** to generate a clear, human‑readable explanation of the security risk.
+- Logs all results to **CloudWatch Logs** for auditing and further analysis.
+
+This project demonstrates how to combine AWS serverless services (Lambda, EventBridge, IAM, CloudWatch) with external AI APIs to create a practical, low‑maintenance security tool. By automating the scan, you ensure continuous compliance without manual effort, and the AI‑generated insights make it easy to communicate risks to stakeholders.
+
+### Potential Enhancements
+
+- **Add alerts** – Use CloudWatch Alarms or Amazon SNS to notify a security team when an unencrypted bucket is found.
+- **Expand the scan** – Include other security checks, such as bucket public access blocks or versioning status.
+- **Store results** – Write the findings to a DynamoDB table or an S3 bucket for long‑term trend analysis.
+- **Improve AI prompts** – Customize the Gemini prompt to include compliance frameworks (e.g., HIPAA, PCI‑DSS) or to suggest remediation steps.
+
+With this foundation, you can easily extend the scanner to meet your organization’s evolving security needs.
 ---
