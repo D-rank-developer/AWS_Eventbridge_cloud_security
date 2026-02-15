@@ -20,3 +20,6 @@ Web Services; the main concepts I learned were event-driven architecture,
 scheduled automation, secure environment variable management, IAM-based
 permission control, serverless deployment packaging, and how to transform raw
 cloud security metadata into meaningful, AI-powered security insights.
+
+![AWS Security Architecture](image/image16.png)
+
