@@ -61,6 +61,9 @@ The scanner begins by initializing a secure connection to AWS S3 while simultane
 
 ## Package Code & Create IAM Role
 
+![AWS Security Architecture](image/image2.png)
+
+
 ### Preparing the Deployment Package
 
 I’m packaging my code with its dependencies into a deployment-ready zip file so it can run inside AWS Lambda’s serverless environment.
@@ -79,13 +82,65 @@ The zip file contains my main Lambda function file plus all installed dependenci
 
 ![Image](http://learn.nextwork.org/sparkling_blue_joyful_nopal/uploads/ai-aws-s3-security_aws5f6g7h)
 
+## Navigating, Defining and Creating Policies:
+![AWS Security Architecture](image/image3.png)
+![AWS Security Architecture](image/image4.png)
+![AWS Security Architecture](image/image5.png)
+
+The policy is named `S3EncryptionReadPolicy`.
+
+An optional description can be added.
+
+The permissions summary shows that S3 List and Read actions are allowed on all resources.
+
+Click Create policy to save it.
+
+
 ### Setting Up IAM Permissions
 
 I created an IAM role called LambdaS3ScannerRole. The policies I attached were AWSLambdaBasicExecutionRole (AWS managed) and S3EncryptionReadPolicy (Customer managed). These permissions allow Lambda to write logs to CloudWatch and read encrypted S3 objects.
+![AWS Security Architecture](image/image6.png)
+After creating the policy, a confirmation message appears: “Policy S3EncryptionReadPolicy created.”
+The Roles page lists existing roles; the user will now create a new role for Lambda.
+
+![AWS Security Architecture](image/image7.png)
+
+Defining Trust Policies
+
+![AWS Security Architecture](image/image8.png)
+![AWS Security Architecture](image/image9.png)
+Attaching these permissions to policies
+
+![AWS Security Architecture](image/image10.png)
+Naming and creating the role.
+Give the role a meaningful name, e.g., LambdaS3ScannerRole.
+
+Review the trust policy and the attached permissions:
+
+AWSLambdaBasicExecutionRole (AWS managed)
+
+S3EncryptionReadPolicy (customer managed)
+
+Add optional tags if desired.
+
+Click Create role.
 
 ---
 
 ## Deploying and Testing Lambda
+Open the AWS Lambda Console and click Create function.
+Choose Author from scratch.
+Enter the following:
+Function name: s3-security-scanner
+Runtime: Python 3.14
+Architecture: x86_64
+Under Permissions, expand Change default execution role.
+Select Use an existing role.
+From the dropdown, choose the role you created earlier: LambdaS3ScannerRole.
+Click Create function.
+The role you selected already includes the necessary permissions (S3EncryptionReadPolicy and AWSLambdaBasicExecutionRole).
+![AWS Security Architecture](image/image13.png)
+
 
 ### Uploading the Function to AWS
 
